@@ -15,6 +15,7 @@ let tname = alpha (alpha | num | '-' | '_')*
 let aname = alpha (alpha | num | '-' | '-' | ':')*
 
 rule html = parse
+  | '\r' { html lexbuf }
   | '\n'
     { !+ 1;
       html lexbuf }
@@ -42,6 +43,7 @@ rule html = parse
   | eof
     { EOF }
 and tag_inner = parse
+  | '\r' { tag_inner lexbuf }
   | '\n'
     { !+ 1;
       tag_inner lexbuf }
