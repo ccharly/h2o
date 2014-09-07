@@ -23,3 +23,16 @@ let print_token t =
     | _ ->
             failwith "print_token: unknown token."
 
+let rec print_ast_node = function
+    | `Node (n, a, c) ->
+            printf "`Node:%s\n" n;
+            List.iter (fun (a,b) -> printf "attr:%s=%s\n" a b) a;
+            printf "[\n";
+            List.iter print_ast_node c;
+            printf "]\n"
+    | `Data d ->
+            printf "`Data:%s\n" d
+    | `Comment c ->
+            printf "`Comment:%s\n" c
+    | `Eof ->
+            printf "`Eof\n"
