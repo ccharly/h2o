@@ -1,4 +1,6 @@
 %{
+    open Printf
+
     let name_of_tag (name, _) = name
     let attrs_of_tag (_, attrs) = attrs
 
@@ -16,7 +18,7 @@
 %token <string> Data
 
 %start doc
-%type <Mlcast.t> doc
+%type <Mlc_ast.t> doc
 
 %%
 
@@ -24,8 +26,7 @@ doc:
   | EOF { `Eof }
   | Tag { node_of_tag $1 [] }
   | TagStart doc_list TagEnd {
-    print_endline (name_of_tag $1);
-    print_endline $3;
+      printf "%s=%s\n" (name_of_tag $1) $3;
     if (name_of_tag $1) = $3 then begin
         node_of_tag $1 (List.rev $2)
     end else

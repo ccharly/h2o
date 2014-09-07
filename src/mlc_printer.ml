@@ -1,8 +1,8 @@
 open Printf
 
 let print_token t =
-    let open Mlcpar in
-    printf "::%d::" (Mlcloc.get_current_line ());
+    let open Mlc_par in
+    printf "::%d::" (Mlc_loc.get_current_line ());
     match t with
     | DocType d ->
             printf "DocType:%s\n" d
@@ -70,3 +70,4 @@ let rec print_ast_node = function
             printf "`Comment:%s\n" c
     | `Eof ->
             printf "`Eof\n"
+

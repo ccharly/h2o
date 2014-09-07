@@ -10,7 +10,7 @@ let () =
     let argc = Array.length argv in
     if argc < 1 then
         (usage (); exit 1);
-    let open Mlcpar in
+    let open Mlc_par in
     Array.iter
       (fun f ->
           printf "## %s\n" f;
@@ -19,15 +19,15 @@ let () =
           let eof = ref false in
           while not !eof do
               if not print_token then begin
-                  let token = Mlcpar.doc Mlclex.html lexbuf in
+                  let token = Mlc_par.doc Mlc_lex.html lexbuf in
                   if token = `Eof then
                       eof := true;
-                Mlcprinter.print_ast_node token;
+                Mlc_printer.print_ast_node token;
               end else begin
-                  let token = Mlclex.html lexbuf in
+                  let token = Mlc_lex.html lexbuf in
                   if token = EOF then
                       eof := true;
-                Mlcprinter.print_token token;
+                Mlc_printer.print_token token;
               end
           done;
           printf "## (eof) %s\n" f;

@@ -1,7 +1,7 @@
 {
   open Printf
-  open Mlcpar
-  open Mlcloc
+  open Mlc_par
+  open Mlc_loc
 
   let tag_end = ref false
 }
