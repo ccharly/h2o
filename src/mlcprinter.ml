@@ -27,22 +27,7 @@ module Map = Map.Make(struct type t = string let compare = compare end)
 
 let default_attr_builder = sprintf "a_%s %S"
 
-let a_class k v =
-    let v = Str.split (Str.regexp " ") v in
-    let v = List.fold_left (sprintf "%s%S; ") "" v in
-    sprintf "a_class [%s]" v
-
-let a_data k v =
-    let k = String.sub k 5 (String.length k) in
-    sprintf "a_user_data %S %S" k v
-
-let attr_specs =
-    let s a = `string a in
-    let r a = `regexp a in [
-        (* Add specializations here *)
-        s "class", a_class;
-        r "data-.+", a_data;
-    ]
+open Mlc_attr_printer
 
 (* smap = String map, rlist = Str.regexp list *)
 let attr_smap, attr_rlist =

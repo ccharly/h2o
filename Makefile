@@ -7,7 +7,10 @@ PLUGINS		:= -plugin-tag $(patsubst %,"package(%)",$(PLUGINS))
 PKGS		= str
 PKGS		:= $(addprefix -package ,$(PKGS))
 
-OCAMLBUILD  := $(OCAMLBUILD) $(OPTIONS) $(PLUGINS) $(PKGS)
+INC_DIRS	= src src/config
+INC_DIRS	:= $(addprefix -Is ,$(INC_DIRS))
+
+OCAMLBUILD  := $(OCAMLBUILD) $(OPTIONS) $(PLUGINS) $(PKGS) $(INC_DIRS)
 
 PARSER		= mlcpar
 LEXER		= mlclex
