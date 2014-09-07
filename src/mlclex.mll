@@ -4,7 +4,15 @@
 
   let tag_end = ref false
 
+  let count_eol s =
+      let i = ref 0 in
+      String.iter (fun c -> if c = '\n' then incr i) s;
+      !i
+
   let current_line = ref 1
+
+  let (!+) n =
+      current_line := !current_line + n
 
   let get_current_line () =
       !current_line
@@ -24,18 +32,21 @@ rule html = parse
       html lexbuf }
   | spaces+
     { html lexbuf }
-  | ([^ '<' '>']+ as data)
+  | ([^ '<' '>' '\n']+ as data)
     { Data data }
-  | "<" blank* (tname as n)
-    { let a = tag_inner lexbuf in
+  | "<" (blank* as b) (tname as n)
+    { !+ (count_eol b);
+      let a = tag_inner lexbuf in
       if not !tag_end
       then TagStart (n, a)
       else begin
           tag_end := false;
           Tag (n, a)
       end }
-  | "</" blank* (tname as n) blank* ">"
-    { TagEnd n }
+  | "</" (blank* as b) (tname as n) (blank* as bb) ">"
+    { !+ (count_eol b);
+      !+ (count_eol bb);
+      TagEnd n }
   | "<!DOCTYPE" ([^ '>']* as d) ">"
     { DocType d }
   | "<!--" (([^ '-'] | "- ")* as c) "-->"
