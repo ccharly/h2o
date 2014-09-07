@@ -1,7 +1,9 @@
 open Mlcpar
 open Printf
 
-let print_token t = match t with
+let print_token t =
+    printf "::%d::" (Mlcloc.get_current_line ());
+    match t with
     | DocType d ->
             printf "DocType:%s\n" d
     | Data d ->

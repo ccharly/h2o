@@ -1,21 +1,9 @@
 {
   open Printf
   open Mlcpar
+  open Mlcloc
 
   let tag_end = ref false
-
-  let count_eol s =
-      let i = ref 0 in
-      String.iter (fun c -> if c = '\n' then incr i) s;
-      !i
-
-  let current_line = ref 1
-
-  let (!+) n =
-      current_line := !current_line + n
-
-  let get_current_line () =
-      !current_line
 }
 
 let spaces = (' ' | '\t')
@@ -28,7 +16,7 @@ let aname = alpha (alpha | num | '-' | '-')*
 
 rule html = parse
   | '\n'
-    { incr current_line;
+    { !+ 1;
       html lexbuf }
   | spaces+
     { html lexbuf }
@@ -52,10 +40,10 @@ rule html = parse
   | "<!--" (([^ '-'] | "- ")* as c) "-->"
     { Comment c }
   | eof
-    { printf "lines:%d\n" !current_line; EOF }
+    { EOF }
 and tag_inner = parse
   | '\n'
-    { incr current_line;
+    { !+ 1;
       tag_inner lexbuf }
   | spaces+
     { tag_inner lexbuf }
