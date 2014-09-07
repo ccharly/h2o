@@ -22,7 +22,7 @@ let print_token t = match t with
             failwith "print_token: unknown token."
 
 let () =
-    let file = "big.html" in
+    let file = "test/big.html" in
     let in_ch = open_in file in
     let lexbuf = Lexing.from_channel in_ch in
     let eof = ref false in
