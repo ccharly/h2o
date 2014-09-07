@@ -12,7 +12,7 @@ let blank = (spaces | '\n')
 let num = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 let tname = alpha (alpha | num | '-' | '_')*
-let aname = alpha (alpha | num | '-' | '-')*
+let aname = alpha (alpha | num | '-' | '-' | ':')*
 
 rule html = parse
   | '\n'
