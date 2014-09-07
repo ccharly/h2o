@@ -1,10 +1,13 @@
 OCAMLBUILD  = ocamlbuild
 OPTIONS		= -classic-display -use-ocamlfind
 
-PACKAGES	= cppo_ocamlbuild
-PACKAGES	:= -plugin-tag $(patsubst %,"package(%)",$(PACKAGES))
+PLUGINS		= cppo_ocamlbuild
+PLUGINS		:= -plugin-tag $(patsubst %,"package(%)",$(PLUGINS))
 
-OCAMLBUILD  := $(OCAMLBUILD) $(OPTIONS) $(PACKAGES)
+PKGS		= str
+PKGS		:= $(addprefix -package ,$(PKGS))
+
+OCAMLBUILD  := $(OCAMLBUILD) $(OPTIONS) $(PLUGINS) $(PKGS)
 
 PARSER		= mlcpar
 LEXER		= mlclex
