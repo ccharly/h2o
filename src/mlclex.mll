@@ -36,6 +36,9 @@ rule html = parse
     { !+ (count_eol b);
       !+ (count_eol bb);
       TagEnd n }
+  | "<![CDATA[" (_* as d) "]]>"
+    { !+ (count_eol d);
+      CDATA d }
   | "<!DOCTYPE" ([^ '>']* as d) ">"
     { DocType d }
   | "<!--" (([^ '-'] | "- ")* as c) "-->"
