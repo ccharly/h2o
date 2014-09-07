@@ -12,8 +12,8 @@ INC_DIRS	:= $(addprefix -Is ,$(INC_DIRS))
 
 OCAMLBUILD  := $(OCAMLBUILD) $(OPTIONS) $(PLUGINS) $(PKGS) $(INC_DIRS)
 
-PARSER		= mlcpar
-LEXER		= mlclex
+PARSER		= mlc_par
+LEXER		= mlc_lex
 
 BIN			= mlc
 
