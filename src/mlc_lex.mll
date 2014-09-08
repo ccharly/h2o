@@ -41,7 +41,7 @@ rule html = parse
       CDATA d }
   | "<!DOCTYPE" ([^ '>']* as d) ">"
     { DocType d }
-  | "<!--" (([^ '-'] | "- ")* as c) "-->"
+  | "<!--" (('-'* [^ '-' '>'] | '>')* as c) "-->"
     { Comment c }
   | eof
     { EOF }
