@@ -1,13 +1,19 @@
 open Printf
 
-let a_class k v =
+let default_attr_builder _ (n, v) =
+    sprintf "a_%s %S" n v
+
+let a_type _ (_, v) =
+    sprintf "a_type `%s" (String.capitalize v)
+
+let a_class _ (_, v) =
     let v = Str.split (Str.regexp " ") v in
-    let v = List.fold_left (sprintf "%s%S; ") "" v in
+    let v = Mlc_list.enum ~sep:"; " v (sprintf "%S") in
     sprintf "a_class [%s]" v
 
-let a_data k v =
-    let k = String.sub k 5 (String.length k) in
-    sprintf "a_user_data %S %S" k v
+let a_data _ (n, v) =
+    let n = String.sub n 5 ((String.length n) - 5) in
+    sprintf "a_user_data %S %S" n v
 
 let attr_specs =
     let s a = `string a in
