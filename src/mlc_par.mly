@@ -26,7 +26,6 @@ doc:
   | EOF { `Eof }
   | Tag { node_of_tag $1 [] }
   | TagStart doc_list TagEnd {
-      printf "%s=%s\n" (name_of_tag $1) $3;
     if (name_of_tag $1) = $3 then begin
         node_of_tag $1 (List.rev $2)
     end else
