@@ -4,6 +4,24 @@
   open Mlc_loc
 
   let tag_end = ref false
+
+  module Map = Map.Make(struct
+      type t = string
+      let compare = compare
+  end)
+
+  (* Elements that does not required any children. They can be written like:
+   * <img ...> (without </img> or .. />)
+   * *)
+  let nullary =
+      let m = Map.empty in
+      List.fold_left (fun m n -> Map.add n true m) m [
+          (* Add nullary element here *)
+          "img";
+      ]
+
+  let is_nullary n =
+      Map.mem n nullary
 }
 
 let spaces = (' ' | '\t')
@@ -27,15 +45,20 @@ rule html = parse
     { !+ (count_eol b);
       let a = tag_inner lexbuf in
       if not !tag_end
-      then TagStart (n, a)
-      else begin
+      then begin
+          if is_nullary n
+          then Tag (n, a)
+          else TagStart (n, a)
+      end else begin
           tag_end := false;
           Tag (n, a)
       end }
   | "</" (blank* as b) (tname as n) (blank* as bb) ">"
     { !+ (count_eol b);
       !+ (count_eol bb);
-      TagEnd n }
+      if is_nullary n
+      then Comment ("discarding unexpected </"^n^">")
+      else TagEnd n }
   | "<![CDATA[" (_* as d) "]]>"
     { !+ (count_eol d);
       CDATA d }
