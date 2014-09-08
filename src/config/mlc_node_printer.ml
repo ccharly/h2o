@@ -17,7 +17,7 @@ let default_node_builder node_builder kind =
                 (Mlc_list.enum ~sep:"\n" children
                     (fun node ->
                         incr depth; let node = node_builder node in decr depth; node))
-                (if Mlc_list.empty children then "" else "\n" ^ prefix)
+                (if Mlc_list.empty children then prefix else "\n" ^ prefix)
     | `Data d ->
             sprintf "pcdata %S;" d
     | `Comment c ->
