@@ -5,7 +5,7 @@
     let attrs_of_tag (_, attrs) = attrs
 
     let node_of_tag (name, attrs) l =
-        `Node (name, attrs, l)
+        `Node (name, attrs, (List.rev l))
 %}
 
 %token EOF
