@@ -15,10 +15,23 @@ let a_data _ (n, v) =
     let n = String.sub n 5 ((String.length n) - 5) in
     sprintf "a_user_data %S %S" n v
 
-let attr_specs =
-    let s a = `string a in
-    let r a = `regexp a in [
+module C = Mlc_cache_builder.Make(struct
+    type value = (string * string)
+
+    let has_name _ = true
+    let get_name (n, _) = n
+    let default = default_attr_builder
+end)
+
+let () =
+    let open C in
+    List.iter C.register [
         (* Add specializations here *)
+        s "type", a_type;
         s "class", a_class;
         r "data-.+", a_data;
     ]
+
+let build = C.build
+let print_attr v =
+    printf "%s\n" (build v)
