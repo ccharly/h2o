@@ -18,7 +18,7 @@
 %token <string> Data
 
 %start doc
-%type <Mlc_ast.t> doc
+%type <H2o_ast.t> doc
 
 %%
 

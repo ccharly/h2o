@@ -12,10 +12,10 @@ INC_DIRS	:= $(addprefix -Is ,$(INC_DIRS))
 
 OCAMLBUILD  := $(OCAMLBUILD) $(OPTIONS) $(PLUGINS) $(PKGS) $(INC_DIRS)
 
-PARSER		= mlc_par
-LEXER		= mlc_lex
+PARSER		= h2o_par
+LEXER		= h2o_lex
 
-BIN			= mlc
+BIN			= h2o
 
 all: lexer parser
 	$(OCAMLBUILD) src/$(BIN).native src/$(BIN).byte
@@ -24,7 +24,7 @@ lexer:
 	$(OCAMLBUILD) src/$(LEXER).ml
 
 parser:
-	$(OCAMLBUILD) src/$(PARSER).ml
+	$(OCAMLBUILD) -use-menhir src/$(PARSER).ml
 
 clean:
 	$(OCAMLBUILD) -clean

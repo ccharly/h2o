@@ -1,8 +1,8 @@
 open Printf
 
 let print_token t =
-    let open Mlc_par in
-    printf "::%d::" (Mlc_loc.get_current_line ());
+    let open H2o_par in
+    printf "::%d::" (H2o_loc.get_current_line ());
     match t with
     | DocType d ->
             printf "DocType:%s\n" d
@@ -24,4 +24,4 @@ let print_token t =
             failwith "print_token: unknown token."
 
 let rec print_ast_node node =
-    printf "%s\n" (Mlc_node_printer.build node)
+    printf "%s\n" (H2o_node_printer.build node)

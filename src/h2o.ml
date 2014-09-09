@@ -1,6 +1,6 @@
 open Printf
 
-let print_token = true
+let print_token = false
 
 let usage () =
     eprintf "usage: %s <file1> <file2> ..\n" Sys.executable_name
@@ -10,7 +10,7 @@ let () =
     let argc = Array.length argv in
     if argc < 1 then
         (usage (); exit 1);
-    let open Mlc_par in
+    let open H2o_par in
     Array.iter
       (fun f ->
           printf "## %s\n" f;
@@ -19,15 +19,15 @@ let () =
           let eof = ref false in
           while not !eof do
               if not print_token then begin
-                  let token = Mlc_par.doc Mlc_lex.html lexbuf in
+                  let token = H2o_par.doc H2o_lex.html lexbuf in
                   if token = `Eof then
                       eof := true;
-                Mlc_printer.print_ast_node token;
+                H2o_printer.print_ast_node token;
               end else begin
-                  let token = Mlc_lex.html lexbuf in
+                  let token = H2o_lex.html lexbuf in
                   if token = EOF then
                       eof := true;
-                Mlc_printer.print_token token;
+                H2o_printer.print_token token;
               end
           done;
           printf "## (eof) %s\n" f;

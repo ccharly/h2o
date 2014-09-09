@@ -8,14 +8,14 @@ let a_type _ (_, v) =
 
 let a_class _ (_, v) =
     let v = Str.split (Str.regexp " ") v in
-    let v = Mlc_list.enum ~sep:"; " v (sprintf "%S") in
+    let v = H2o_list.enum ~sep:"; " v (sprintf "%S") in
     sprintf "a_class [%s]" v
 
 let a_data _ (n, v) =
     let n = String.sub n 5 ((String.length n) - 5) in
     sprintf "a_user_data %S %S" n v
 
-module C = Mlc_cache_builder.Make(struct
+module C = H2o_cache_builder.Make(struct
     type value = (string * string)
 
     let has_name _ = true

@@ -1,7 +1,7 @@
 {
   open Printf
-  open Mlc_par
-  open Mlc_loc
+  open H2o_par
+  open H2o_loc
 
   let tag_end = ref false
 

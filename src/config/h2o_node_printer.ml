@@ -13,11 +13,11 @@ let default_node_builder node_builder kind =
     | `Node (name, attrs, children) ->
             sprintf "%s ~a:[%s] [\n%s%s];"
                 name
-                (Mlc_list.enum ~sep:"; " attrs Mlc_attr_printer.build)
-                (Mlc_list.enum ~sep:"\n" children
+                (H2o_list.enum ~sep:"; " attrs H2o_attr_printer.build)
+                (H2o_list.enum ~sep:"\n" children
                     (fun node ->
                         incr depth; let node = node_builder node in decr depth; node))
-                (if Mlc_list.empty children then prefix else "\n" ^ prefix)
+                (if H2o_list.empty children then prefix else "\n" ^ prefix)
     | `Data d ->
             sprintf "pcdata %S;" d
     | `Comment c ->
@@ -25,8 +25,8 @@ let default_node_builder node_builder kind =
     | `Eof -> ""
     )
 
-module C = Mlc_cache_builder.Make(struct
-    type value = Mlc_ast.t
+module C = H2o_cache_builder.Make(struct
+    type value = H2o_ast.t
 
     let has_name = function
         | `Node _ -> true
