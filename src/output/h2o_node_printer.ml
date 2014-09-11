@@ -10,6 +10,9 @@ let cache_find ~default n =
     with Not_found -> default
 
 class type node_t = object
+    (* A string version of the object, debug purposes *)
+    method to_string: string
+
     (* Returns true if the object must be registered to the cache *)
     method register: bool
 
@@ -45,6 +48,8 @@ class type node_t = object
 end
 
 class node : node_t = object(this)
+    method to_string = "default:node"
+
     method register = true
 
     method nullary = false
