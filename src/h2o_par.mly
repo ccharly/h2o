@@ -38,7 +38,7 @@ doc:
     if name = $3 then begin
         node_of_tag $1 (List.rev $2)
     end else
-        failwith "unexpected .."
+        failwith (sprintf "parsing:%d: unexpected %s, was expecting %s" (H2o_loc.get_current_line ()) $3 name)
   }
   | CDATA { `Comment $1 }
   | Comment { `Comment $1 }
