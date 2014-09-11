@@ -10,3 +10,10 @@ let enum ~sep l f =
 let empty = function
     | [] -> true
     | _ -> false
+
+let add l v =
+    l := [v] @ !l
+
+let iter l f = List.iter f l
+let fold_left d l f = List.fold_left f d l
+let find l f = List.find f l
