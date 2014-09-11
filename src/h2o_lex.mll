@@ -18,6 +18,11 @@
       List.fold_left (fun m n -> Map.add n true m) m [
           (* Add nullary element here *)
           "img";
+          "meta";
+          "link";
+          "hr";
+          "br";
+          "input";
       ]
 
   (* Elements that can contain raw data such as html elements
