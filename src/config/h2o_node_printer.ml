@@ -1,50 +1,144 @@
 open Printf
 
-let depth = ref 0
+let registered = ref []
 
-let default_node_builder node_builder kind =
-    let d = !depth in
-    let rec prefix = function
-        | n when n <= 0 -> ""
-        | n -> " "^(prefix (n-1))
-    in
-    let prefix = prefix (d * 2) in
-    prefix ^ (match kind with
-    | `Node (name, attrs, children) ->
-            sprintf "%s ~a:[%s] [\n%s%s];"
-                name
-                (H2o_list.enum ~sep:"; " attrs H2o_attr_printer.build)
-                (H2o_list.enum ~sep:"\n" children
-                    (fun node ->
-                        incr depth; let node = node_builder node in decr depth; node))
-                (if H2o_list.empty children then prefix else "\n" ^ prefix)
-    | `Data d ->
-            sprintf "pcdata %S;" d
-    | `Comment c ->
-            sprintf "(* %s *)" c
-    | `Eof -> ""
-    )
+let register obj =
+    H2o_list.add registered obj
 
-module C = H2o_cache_builder.Make(struct
-    type value = H2o_ast.t
+let cache_find ~default n =
+    try H2o_list.find !registered (fun obj -> obj#matches n)
+    with Not_found -> default
 
-    let has_name = function
-        | `Node _ -> true
-        | _ -> false
+class type node_t = object
+    (* Returns true if the object must be registered to the cache *)
+    method register: bool
 
-    let get_name = function
-        | `Node (n, _, _) -> n
-        | _ -> failwith "get_name"
+    (* Must be true if an element does not expect any children (such as `img`) * *)
+    method nullary: bool
 
-    let default = default_node_builder
-end)
+    (* Returns true if the given name matches, otherwise returns false *)
+    method matches: string -> bool
+
+    (* Returns a string version of the element *)
+    method name: string -> string
+
+    (* Returns the equivalent eliom code for an attribute *)
+    method on_attr: (string * string) -> H2o_attr_printer.t
+
+    (* Returns the equivalent eliom code for all attributes *)
+    method on_attrs: (string * string) list -> string
+
+    (* Returns data *)
+    method on_data: string -> string
+
+    (* Returns commentaries *)
+    method on_comment: string -> string
+
+    (* Returns empty  *)
+    method on_eof: string
+end
+
+class node : node_t = object(this)
+    method register = true
+
+    method nullary = false
+
+    method matches _ = true
+
+    method name n = n
+
+    method on_attr ((n, v) as attr) =
+        `a attr
+
+    method on_attrs attrs =
+        let al = ref [] in
+        let ll = ref [] in
+        H2o_list.iter attrs
+            (fun a ->
+                let a = this#on_attr a in
+                if H2o_attr_printer.is_label a
+                then H2o_list.add ll a
+                else H2o_list.add al a);
+        let a_label =
+            if H2o_list.empty !al then ""
+            else
+                H2o_syntax.make_label ~is_list:true
+                   "a" (H2o_list.enum ~sep:"; " !al H2o_attr_printer.build)
+        in
+        sprintf "%s %s"
+            a_label
+            (H2o_list.enum ~sep:" "  !ll H2o_attr_printer.build)
+
+    method on_data d =
+        sprintf "pcdata %S;" d
+
+    method on_comment c =
+        sprintf "(* %s *)" c
+
+    method on_eof =
+        ""
+
+    initializer
+        if this#register then
+            register (this :> node_t)
+end
+
+class node_default = object
+    inherit node
+
+    method register = false
+end
+
+class node_regexp r = object
+    inherit node
+
+    (* The regexp to match *)
+    val reg = Str.regexp r
+
+    method matches name =
+        Str.string_match reg name 0
+end
+
+class node_string n = object
+    inherit node
+
+    (* The string to match *)
+    val n = n
+
+    method matches name =
+        (n = name)
+end
 
 let () =
-    let open C in
-    List.iter C.register [
-        (* Add specializations here *)
-    ]
+    (* Register all *)
+    (* End of register *)
+    ()
 
-let build = C.build
-let print_attr v =
-    printf "%s\n" (build v)
+let top_level =
+    new node
+
+let default_obj = new node_default
+
+let build kind =
+    let rec aux parent kind =
+        let prefix = H2o_syntax.make_pad () in
+        prefix ^ (match kind with
+        | `Node (name, attrs, children) ->
+                let obj = cache_find ~default:default_obj name in
+                sprintf "%s %s [\n%s%s];"
+                    (obj#name name)
+                    (obj#on_attrs attrs)
+                    (H2o_list.enum ~sep:"\n" children
+                        (fun c ->
+                            H2o_syntax.incr_depth ();
+                            let node = aux obj c in
+                            H2o_syntax.decr_depth ();
+                            node))
+                    (if H2o_list.empty children then prefix else "\n" ^ prefix)
+        | `Data d ->
+                sprintf "pcdata %S;" d
+        | `Comment c ->
+                sprintf "(* %s *)" c
+        | `Eof -> ""
+        )
+    in aux top_level kind
