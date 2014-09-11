@@ -13,6 +13,7 @@
 %token <string> CDATA
 %token <string * (string * string) list> Tag
 %token <string * (string * string) list> TagStart
+%token <string * (string * string) list * string> TagRaw
 %token <string> TagEnd
 %token <string> Comment
 %token <string> Data
@@ -28,8 +29,13 @@ root:
 ;
 doc:
   | Tag { node_of_tag $1 [] }
+  | TagRaw {
+      let name, attrs, data = $1 in
+      `Node (name, attrs, [`Data data])
+  }
   | TagStart doc_list TagEnd {
-    if (name_of_tag $1) = $3 then begin
+    let name = name_of_tag $1 in
+    if name = $3 then begin
         node_of_tag $1 (List.rev $2)
     end else
         failwith "unexpected .."
