@@ -17,3 +17,8 @@ let add l v =
 let iter l f = List.iter f l
 let fold_left d l f = List.fold_left f d l
 let find l f = List.find f l
+
+let next l =
+    let hd = List.hd !l in
+    l := (List.tl !l);
+    hd

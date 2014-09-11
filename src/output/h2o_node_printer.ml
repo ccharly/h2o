@@ -9,6 +9,12 @@ let cache_find ~default n =
     try H2o_list.find !registered (fun obj -> obj#matches n)
     with Not_found -> default
 
+type kind = [
+    | `Unary
+    | `List
+    | `Args of [`Arg | `List | `Unit] list
+]
+
 class type node_t = object
     (* A string version of the object, debug purposes *)
     method to_string: string
@@ -16,8 +22,8 @@ class type node_t = object
     (* Returns true if the object must be registered to the cache *)
     method register: bool
 
-    (* Must be true if an element does not expect any children (such as `img`) * *)
-    method nullary: bool
+    (* Returns the kind of the node *)
+    method kind: kind
 
     (* Returns true if the given name matches, otherwise returns false *)
     method matches: string -> bool
@@ -45,6 +51,9 @@ class type node_t = object
 
     (* Suffix after children *)
     method on_end: string
+
+    (* Called on each child *)
+    method on_child: default:(H2o_ast.t -> string) -> H2o_ast.t -> string
 end
 
 class node : node_t = object(this)
@@ -52,7 +61,7 @@ class node : node_t = object(this)
 
     method register = true
 
-    method nullary = false
+    method kind = `List
 
     method matches _ = true
 
@@ -95,6 +104,9 @@ class node : node_t = object(this)
     method on_end =
         ""
 
+    method on_child ~default node =
+        default node
+
     initializer
         if this#register then
             register (this :> node_t)
@@ -128,9 +140,25 @@ end
 
 let () =
     (* Register all *)
+    (* html *)
+    ignore (object
+        inherit node_string "html"
+        method kind = `Args [ `Arg; `Arg; ]
+    end);
+    (* head *)
+    ignore (object
+        inherit node_string "head"
+        method kind = `Args [ `Arg; `List; ]
+    end);
+    (* title *)
+    ignore (object
+        inherit node_string "title"
+        method kind = `Args [ `Arg ]
+    end);
     (* script *)
     ignore (object
         inherit node_string "script"
+        method kind = `Args [ `Arg ]
 
         method on_begin = "pcdata \""
         method on_end = "\""
@@ -138,8 +166,7 @@ let () =
     (* img *)
     ignore (object
         inherit node_string "img"
-
-        method nullary = true
+        method kind = `Unary
     end);
     (* End of register *)
     ()
@@ -147,28 +174,66 @@ let () =
 let default_obj = new node_default
 
 let build kind =
-    let rec aux parent kind =
+    let rec aux ?(with_prefix = true) parent kind =
         let prefix = H2o_syntax.make_pad () in
-        prefix ^ (match kind with
-        | `Node (name, attrs, children) ->
+        (if with_prefix then prefix else "")
+        ^ (match kind with
+        | `Node (name, attrs, children) -> begin
                 let obj = cache_find ~default:default_obj name in
-                if obj#nullary then
-                    sprintf "%s %s ();"
+                match obj#kind with
+                | `Unary ->
+                    sprintf "%s %s ()"
                         (obj#name name)
                         (obj#on_attrs attrs)
-                else
-                    sprintf "%s %s [%s\n%s%s%s];"
+                | `Args args -> (* TODO use number of args *)
+                    sprintf "%s %s\n%s"
+                        (obj#name name)
+                        (obj#on_attrs attrs)
+                        (let children = ref children in
+                         let args =
+                             H2o_list.enum ~sep:"\n" args
+                                (fun arg ->
+                                    H2o_syntax.incr_depth ();
+                                    let prefix = H2o_syntax.make_pad () in
+                                    let default = aux obj ~with_prefix:false in
+                                    let node = match arg with
+                                    | `Arg ->
+                                            if H2o_list.empty !children
+                                            then failwith (sprintf "tag:%s: argument expected" name)
+                                            else
+                                                let c = H2o_list.next children in
+                                                let node = obj#on_child ~default c in
+                                                sprintf "%s(%s)" prefix node
+                                    | `List ->
+                                            if H2o_list.empty !children then sprintf "%s[]" prefix
+                                            else
+                                                let c = H2o_list.next children in
+                                                let node = obj#on_child ~default c in
+                                                sprintf "%s[%s]" prefix node
+                                    | `Unit -> sprintf "%s()" prefix
+                                    in
+                                    H2o_syntax.decr_depth ();
+                                    node)
+                         in
+                         if not (H2o_list.empty !children)
+                         then failwith (sprintf "tag:%s: unexpected child or children" name)
+                         else args)
+                | `List ->
+                    sprintf "%s %s [%s\n%s%s%s]"
                         (obj#name name)
                         (obj#on_attrs attrs)
                         (obj#on_begin)
                         (H2o_list.enum ~sep:"\n" children
                             (fun c ->
                                 H2o_syntax.incr_depth ();
-                                let node = aux obj c in
+                                let default = aux obj in
+                                let node = obj#on_child ~default c in
+                                let node = node ^ ";" in
                                 H2o_syntax.decr_depth ();
                                 node))
                         (if H2o_list.empty children then prefix else "\n" ^ prefix)
                         (obj#on_end)
+        end
         | `Data d ->
                 parent#on_data d
         | `Comment c ->
