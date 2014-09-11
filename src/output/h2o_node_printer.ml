@@ -166,6 +166,12 @@ let () =
     (* img *)
     ignore (object
         inherit node_string "img"
+
+        method on_attr (n, v) = match n with
+        | "src" -> `label (n, v)
+        | "alt" -> `label (n, v)
+        | _ -> `a (n, v)
+
         method kind = `Unary
     end);
     (* End of register *)
