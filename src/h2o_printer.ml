@@ -23,5 +23,23 @@ let print_token t =
     | _ ->
             failwith "print_token: unknown token."
 
-let rec print_ast_node node =
-    printf "%s\n" (H2o_node_printer.build node)
+let rec build_ast_node_debug t =
+    H2o_syntax.incr_depth ();
+    let open H2o_par in
+    let s = match t with
+    | `Node (n, attrs, c) ->
+            sprintf "`Node(%s, %s, [\n%s%s])\n"
+                n
+                (H2o_list.enum ~sep:"; " attrs
+                    (fun (k, v) -> sprintf "%s=%s" k v))
+                (H2o_list.enum ~sep:"\n" c (fun c -> (H2o_syntax.make_pad ()) ^ (build_ast_node_debug c)))
+                (H2o_syntax.make_pad ())
+    | `Data d -> sprintf "`Data(%s)\n" d
+    | `Comment c -> sprintf "`Comment(%s)\n" c
+    | `Eof -> sprintf "`Eof\n"
+    in
+    H2o_syntax.decr_depth ();
+    s
+
+let print_ast_node_debug t =
+    printf "%s\n" (build_ast_node_debug t)
