@@ -89,7 +89,8 @@ rule html = parse
   | "<!DOCTYPE" ([^ '>']* as d) ">"
     { DocType d }
   | "<!--" (('-'* [^ '-' '>'] | '>')* as c) "-->"
-    { Comment c }
+    { !+ (count_eol c);
+      Comment c }
   | eof
     { EOF }
 and tag_inner = parse
