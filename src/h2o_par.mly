@@ -17,13 +17,16 @@
 %token <string> Comment
 %token <string> Data
 
-%start doc
-%type <H2o_ast.t> doc
+%start root
+%type <H2o_ast.t> root
 
 %%
 
-doc:
+root:
   | EOF { `Eof }
+  | doc { $1 }
+;
+doc:
   | Tag { node_of_tag $1 [] }
   | TagStart doc_list TagEnd {
     if (name_of_tag $1) = $3 then begin
