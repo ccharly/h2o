@@ -36,6 +36,12 @@ class type node_t = object
 
     (* Returns empty  *)
     method on_eof: string
+
+    (* Prefix before children *)
+    method on_begin: string
+
+    (* Suffix after children *)
+    method on_end: string
 end
 
 class node : node_t = object(this)
@@ -78,6 +84,12 @@ class node : node_t = object(this)
     method on_eof =
         ""
 
+    method on_begin =
+        ""
+
+    method on_end =
+        ""
+
     initializer
         if this#register then
             register (this :> node_t)
@@ -114,9 +126,6 @@ let () =
     (* End of register *)
     ()
 
-let top_level =
-    new node
-
 let default_obj = new node_default
 
 let build kind =
@@ -125,20 +134,28 @@ let build kind =
         prefix ^ (match kind with
         | `Node (name, attrs, children) ->
                 let obj = cache_find ~default:default_obj name in
-                sprintf "%s %s [\n%s%s];"
-                    (obj#name name)
-                    (obj#on_attrs attrs)
-                    (H2o_list.enum ~sep:"\n" children
-                        (fun c ->
-                            H2o_syntax.incr_depth ();
-                            let node = aux obj c in
-                            H2o_syntax.decr_depth ();
-                            node))
-                    (if H2o_list.empty children then prefix else "\n" ^ prefix)
+                if obj#nullary then
+                    sprintf "%s %s ();"
+                        (obj#name name)
+                        (obj#on_attrs attrs)
+                else
+                    sprintf "%s %s [%s\n%s%s%s];"
+                        (obj#name name)
+                        (obj#on_attrs attrs)
+                        (obj#on_begin)
+                        (H2o_list.enum ~sep:"\n" children
+                            (fun c ->
+                                H2o_syntax.incr_depth ();
+                                let node = aux obj c in
+                                H2o_syntax.decr_depth ();
+                                node))
+                        (if H2o_list.empty children then prefix else "\n" ^ prefix)
+                        (obj#on_end)
         | `Data d ->
-                sprintf "pcdata %S;" d
+                parent#on_data d
         | `Comment c ->
-                sprintf "(* %s *)" c
-        | `Eof -> ""
+                parent#on_comment c
+        | `Eof ->
+                parent#on_eof
         )
-    in aux top_level kind
+    in aux default_obj kind
