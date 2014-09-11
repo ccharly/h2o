@@ -132,7 +132,6 @@ let () =
     ignore (object
         inherit node_string "script"
 
-        method on_data d = d
         method on_begin = "pcdata \""
         method on_end = "\""
     end);

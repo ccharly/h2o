@@ -81,7 +81,6 @@ class attr_regexp r = object
     val reg = Str.regexp r
 
     method matches name =
-        print_endline name;
         Str.string_match reg name 0
 end
 
