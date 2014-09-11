@@ -211,11 +211,17 @@ let build kind =
                                                 let node = obj#on_child ~default c in
                                                 sprintf "%s(%s)" prefix node
                                     | `List ->
-                                            if H2o_list.empty !children then sprintf "%s[]" prefix
-                                            else
-                                                let c = H2o_list.next children in
-                                                let node = obj#on_child ~default c in
-                                                sprintf "%s[%s]" prefix node
+                                            let children' = !children in
+                                            sprintf "%s[%s]" prefix
+                                            (H2o_list.enum ~sep:"\n" !children
+                                                (fun c ->
+                                                    H2o_syntax.incr_depth ();
+                                                    let default = aux obj in
+                                                    let node = obj#on_child ~default c in
+                                                    let node = node ^ ";" in
+                                                    H2o_syntax.decr_depth ();
+                                                    H2o_list.next children;
+                                                    node))
                                     | `Unit -> sprintf "%s()" prefix
                                     in
                                     H2o_syntax.decr_depth ();
