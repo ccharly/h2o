@@ -1,6 +1,6 @@
 open Printf
 
-let print_token = false
+let print_token = ref false
 
 let usage () =
     eprintf "usage: %s <file1> <file2> ..\n" Sys.executable_name
@@ -10,6 +10,13 @@ let () =
     let argc = Array.length argv in
     if argc < 1 then
         (usage (); exit 1);
+    let argv =
+        if argv.(0) = "-debug" then begin
+            print_token := true;
+            Array.sub argv 1 ((Array.length argv) - 1)
+        end
+        else argv
+    in
     let open H2o_par in
     Array.iter
       (fun f ->
@@ -19,8 +26,8 @@ let () =
           let lexbuf = Lexing.from_channel in_ch in
           let eof = ref false in
           while not !eof do
-              if not print_token then begin
-                  let token = H2o_par.doc H2o_lex.html lexbuf in
+              if not !print_token then begin
+                  let token = H2o_par.root H2o_lex.html lexbuf in
                   if token = `Eof then
                       eof := true;
                 H2o_printer.print_ast_node token;
