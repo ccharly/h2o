@@ -8,6 +8,10 @@ let print_token t =
             printf "DocType:%s\n" d
     | Data d ->
             printf "Data:%s\n" d
+    | TagRaw (n,a,d) ->
+            printf "TagRaw:%s\n" n;
+            List.iter (fun (a,b) -> printf "attr:%s=%s\n" a b) a;
+            printf "[%s]\n" d
     | Tag (n,a) ->
             printf "Tag:%s\n" n;
             List.iter (fun (a,b) -> printf "attr:%s=%s\n" a b) a
