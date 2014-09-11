@@ -131,6 +131,12 @@ let () =
         method on_begin = "pcdata \""
         method on_end = "\""
     end);
+    (* img *)
+    ignore (object
+        inherit node_string "img"
+
+        method nullary = true
+    end);
     (* End of register *)
     ()
 
