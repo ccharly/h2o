@@ -30,7 +30,10 @@ let () =
                   let token = H2o_par.root H2o_lex.html lexbuf in
                   if token = `Eof then
                       eof := true;
-                H2o_printer.print_ast_node token;
+                printf "%s\n" (H2o_node_printer.build token)
+                (*
+                H2o_printer.print_ast_node_debug token;
+                *)
               end else begin
                   let token = H2o_lex.html lexbuf in
                   if token = EOF then
