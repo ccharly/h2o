@@ -13,7 +13,8 @@ let () =
     let open H2o_par in
     Array.iter
       (fun f ->
-          printf "## %s\n" f;
+          printf "(* ## %s *)\n" f;
+          printf "let page () =\n";
           let in_ch = open_in f in
           let lexbuf = Lexing.from_channel in_ch in
           let eof = ref false in
@@ -30,5 +31,5 @@ let () =
                 H2o_printer.print_token token;
               end
           done;
-          printf "## (eof) %s\n" f;
+          printf "(* ## (eof) %s *)\n" f;
         ) argv
