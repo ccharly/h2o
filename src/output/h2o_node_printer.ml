@@ -90,7 +90,7 @@ class node : node_t = object(this)
             (H2o_list.enum ~sep:" "  !ll H2o_attr_printer.build)
 
     method on_data d =
-        sprintf "pcdata %S;" d
+        sprintf "pcdata %S" d
 
     method on_comment c =
         sprintf "(* %s *)" c
