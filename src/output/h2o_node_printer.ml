@@ -123,6 +123,14 @@ end
 
 let () =
     (* Register all *)
+    (* script *)
+    ignore (object
+        inherit node_string "script"
+
+        method on_data d = d
+        method on_begin = "pcdata \""
+        method on_end = "\""
+    end);
     (* End of register *)
     ()
 
