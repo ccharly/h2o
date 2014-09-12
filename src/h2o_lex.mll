@@ -10,6 +10,28 @@
       let compare = compare
   end)
 
+  (* [true] if you want to enable the replace of escape HTML to
+   * eliom string *)
+  let enable_replace = true
+
+  (* Replace some escaped HTML string to their original form
+   * FIXME: Try to make it faster *)
+  let to_replace = [
+      "&quot;", "\"";
+      "&lt;", "<";
+      "&gt;", ">";
+      "&amp;", "&";
+  ]
+
+  let to_replace =
+      List.map (fun (r, c) -> Str.regexp r, c) to_replace
+
+  let to_eliom_string s =
+      if not enable_replace then s
+      else
+          H2o_list.fold_left s to_replace
+            (fun s (r, c) -> Str.global_replace r c s)
+
   (* Elements that does not required any children. They can be written like:
    * <img ...> (without </img> or .. />)
    * *)
@@ -60,7 +82,7 @@ rule html = parse
   | spaces+
     { html lexbuf }
   | ([^ '<' '>' '\n']+ as data)
-    { Data data }
+    { Data (to_eliom_string data) }
   | "<" (blank* as b) (tname as n)
     { !+ (count_eol b);
       let a = tag_inner lexbuf in
@@ -124,6 +146,6 @@ and tag_raw name = parse
       then ""
       else tag_raw name lexbuf }
   | ([^ '<' '\n']+ as data)
-    { data ^ (tag_raw name lexbuf) }
+    { (to_eliom_string data) ^ (tag_raw name lexbuf) }
   | '<'
     { "<" ^ (tag_raw name lexbuf) }
