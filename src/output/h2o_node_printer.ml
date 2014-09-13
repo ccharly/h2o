@@ -177,6 +177,11 @@ let () =
     (* End of register *)
     ()
 
+(* Some helpers *)
+let is_comment = function
+  | `Comment _ -> true
+  | _ -> false
+
 let default_obj = new node_default
 
 let build kind =
@@ -218,7 +223,11 @@ let build kind =
                                                     H2o_syntax.incr_depth ();
                                                     let default = aux obj in
                                                     let node = obj#on_child ~default c in
-                                                    let node = node ^ ";" in
+                                                    let node =
+                                                      if is_comment c
+                                                      then node
+                                                      else node ^ ";"
+                                                    in
                                                     H2o_syntax.decr_depth ();
                                                     H2o_list.next children;
                                                     node))
@@ -240,7 +249,11 @@ let build kind =
                                 H2o_syntax.incr_depth ();
                                 let default = aux obj in
                                 let node = obj#on_child ~default c in
-                                let node = node ^ ";" in
+                                let node =
+                                  if is_comment c
+                                  then node
+                                  else node ^ ";"
+                                in
                                 H2o_syntax.decr_depth ();
                                 node))
                         (if H2o_list.empty children then prefix else "\n" ^ prefix)
