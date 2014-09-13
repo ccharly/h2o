@@ -86,6 +86,22 @@ end
 
 let () =
     (* Register all *)
+    (* http-equiv *)
+    ignore (object
+        inherit attr_string "http-equiv"
+
+        method a_name _ =
+            "a_http_equiv"
+    end);
+
+    (* xml lang *)
+    ignore (object
+        inherit attr_string "lang"
+
+        method a_name _ =
+            "a_xml_lang"
+    end);
+
     (* type *)
     ignore (object
         inherit attr_string "type"
