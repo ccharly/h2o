@@ -1,10 +1,19 @@
-let enum ~sep l f =
-    let first = ref true in
+let enum ?(predicate = (fun _ -> true)) ~sep ?(fallback_sep = "") l f =
+    let i = ref 0 in
+    let max = List.length l in
     List.fold_left
       (fun a b ->
+        let sep =
+          if not (!i = max) then
+            if predicate b
+            then sep
+            else fallback_sep
+          else ""
+         in
+         incr i;
           a
-          ^ (if !first then (first := false; "") else sep)
-          ^ (f b))
+          ^ (f b)
+          ^ sep)
       "" l
 
 let empty = function
