@@ -161,6 +161,11 @@ let () =
         inherit node_string "title"
         method kind = `Args [ `Arg ]
     end);
+    (* meta *)
+    ignore (object
+        inherit node_string "meta"
+        method kind = `Unary
+    end);
     (* script *)
     ignore (object
         inherit node_string "script"
