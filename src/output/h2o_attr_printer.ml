@@ -91,6 +91,17 @@ class attr_regexp r = object
 end
 
 let () =
+    (* Register attributes to be ignored *)
+    (* role *)
+    ignore (object
+        inherit attr_string "role"
+
+        method ignore = true
+    end);
+    (* End of register *)
+    ()
+
+let () =
     (* Register all *)
     (* http-equiv *)
     ignore (object
