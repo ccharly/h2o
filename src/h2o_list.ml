@@ -4,7 +4,7 @@ let enum ?(predicate = (fun _ -> true)) ~sep ?(fallback_sep = "") l f =
     List.fold_left
       (fun a b ->
         let sep =
-          if not (!i = max) then
+          if (!i < max - 1) then
             if predicate b
             then sep
             else fallback_sep
