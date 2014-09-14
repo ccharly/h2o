@@ -82,8 +82,14 @@ class node : node_t = object(this)
         let a_label =
             if H2o_list.empty !al then ""
             else
-                H2o_syntax.make_label ~is_list:true
-                   "a" (H2o_list.enum ~sep:"; " !al H2o_attr_printer.build)
+              let a_cnt =
+                H2o_list.enum !al
+                ~predicate:H2o_attr_printer.is_not_ignored
+                ~fallback_sep:" "
+                ~sep:"; "
+                H2o_attr_printer.build
+              in
+              H2o_syntax.make_label ~is_list:true "a" a_cnt
         in
         sprintf "%s %s"
             a_label

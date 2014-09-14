@@ -21,6 +21,10 @@ let cache_find ~default n =
 class type attr_t = object
     method matches: string -> bool
 
+    (* If [true], then the attribute will be commented
+     * in the generated code *)
+    method ignore: bool
+
     (* This method is called by both a_value and
      * l_value by default, use that one if you want to
      * overload both at the same time.
@@ -40,6 +44,8 @@ end
 
 class attr : attr_t = object(this)
     method matches _ = true
+
+    method ignore = false
 
     method value _ v =
         sprintf "%S" v
@@ -137,19 +143,30 @@ let () =
 (* Default builder, won't be registered *)
 let default_obj = new attr_default
 
+let is_ignored kind =
+    let n = match kind with
+    | `a (n, _) -> n
+    | `label (n, _) -> n
+    in
+    (cache_find ~default:default_obj n)#ignore
+
+let is_not_ignored kind = not (is_ignored kind)
+
 let build kind =
-    let find_and_build n build_name build_value build_attr =
+    let find_and_build n v build_name build_value build_attr =
         let obj = cache_find ~default:default_obj n in
-        build_attr (build_name obj) (build_value obj)
+        if obj#ignore
+        then sprintf "(* %s=%s *)" n v
+        else build_attr (build_name obj) (build_value obj)
     in
     match kind with
     | `a (n, v) ->
-            find_and_build n
+            find_and_build n v
                 (fun obj -> obj#a_name n)
                 (fun obj -> obj#a_value n v)
                 (sprintf "%s %s")
     | `label (n, v) ->
-            find_and_build n
+            find_and_build n v
                 (fun obj -> obj#l_name n)
                 (fun obj -> obj#l_value n v)
                 (sprintf "~%s:%s")
