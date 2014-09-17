@@ -255,6 +255,11 @@ let () =
         | _ -> `a (n, v)
 
         method kind = `Unary
+
+        (* Temporary add src as optional (this fix bootstrap.html *)
+        method defaults = [
+            "src", "";
+        ]
     end);
 
     (* button *)
