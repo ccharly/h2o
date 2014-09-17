@@ -241,7 +241,7 @@ let () =
       "mime_type";
       "datetime";
       "action";
-      "checked";
+      (*"checked";*)
       "cols";
       "enctype";
       "for";
@@ -387,6 +387,14 @@ let () =
             let v = Str.split (Str.regexp " ") v in
             let v = H2o_list.enum ~sep:"; " v (sprintf "%S") in
             sprintf "[%s]" v
+    end);
+
+    (* checked *)
+    ignore (object
+        inherit attr_string "checked"
+
+        method value _ _ =
+            "`Checked"
     end);
 
     (* tabindex *)
