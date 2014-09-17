@@ -14,10 +14,21 @@ let cache_find ~default n =
     try H2o_list.find !registered (fun obj -> obj#matches n)
     with Not_found -> default
 
+type arg = [
+    | `Arg
+    | `List
+    | `Unit
+    | `Label of string
+]
+
 type kind = [
     | `Unary
     | `List
-    | `Args of [`Arg | `List | `Unit] list
+    | `Args of [
+        | arg
+        | `Expect of (string * arg)
+        | `Option of (string * arg)
+    ] list
 ]
 
 class type node_t = object
@@ -256,6 +267,13 @@ let is_comment = function
 
 let default_obj = new node_default
 
+(* FIXME TODO
+ *
+ * This function need some clean up or a lots of commentaries, this is quite
+ * difficult to understand right now. This is because of the `Args variants,
+ * this could maybe be improved..
+ *
+ * *)
 let build kind =
     let rec aux ?(with_prefix = true) parent kind =
         let prefix = H2o_syntax.make_pad () in
@@ -274,39 +292,94 @@ let build kind =
                         (obj#on_attrs attrs)
                         (let children = ref children in
                          let args =
-                             H2o_list.enum ~sep:"\n" args
-                                (fun arg ->
-                                    H2o_syntax.incr_depth ();
-                                    let prefix = H2o_syntax.make_pad () in
-                                    let default = aux obj ~with_prefix:false in
-                                    let node = match arg with
-                                    | `Arg ->
-                                            if H2o_list.empty !children
-                                            then failwith (sprintf "tag:%s: argument expected" name)
-                                            else
-                                                let c = H2o_list.next children in
-                                                let node = obj#on_child ~default c in
-                                                sprintf "%s(%s)" prefix node
-                                    | `List ->
-                                            let children' = !children in
-                                            sprintf "%s[%s]" prefix
-                                            (H2o_list.enum ~sep:"\n" !children
-                                                (fun c ->
-                                                    H2o_syntax.incr_depth ();
-                                                    let default = aux obj in
-                                                    let node = obj#on_child ~default c in
-                                                    let node =
-                                                      if is_comment c
-                                                      then node
-                                                      else node ^ ";"
-                                                    in
-                                                    H2o_syntax.decr_depth ();
-                                                    H2o_list.next children;
-                                                    node))
-                                    | `Unit -> sprintf "%s()" prefix
-                                    in
-                                    H2o_syntax.decr_depth ();
-                                    node)
+                             let parent = obj in
+                             let rec make_arg ?(with_depth = true) ~children arg =
+                                 if with_depth then
+                                     H2o_syntax.incr_depth ();
+                                 let prefix = H2o_syntax.make_pad () in
+                                 let default = aux parent ~with_prefix:false in
+                                 let node = match arg with
+                                 | `Option _ -> failwith "unexpected `Option"
+                                 | `Expect _ -> failwith "unexpected `Expect"
+                                 | `Label lbl ->
+                                         if H2o_list.empty !children
+                                         then failwith (sprintf "tag:%s: argument expected" name)
+                                         else
+                                             let c = H2o_list.next children in
+                                             let node = parent#on_child ~default c in
+                                             sprintf "%s~%s:(%s)" prefix lbl node
+                                 | `Arg ->
+                                         if H2o_list.empty !children
+                                         then failwith (sprintf "tag:%s: argument expected" name)
+                                         else
+                                             let c = H2o_list.next children in
+                                             let node = parent#on_child ~default c in
+                                             sprintf "%s(%s)" prefix node
+                                 | `List ->
+                                         let children' = !children in
+                                         sprintf "%s[%s]" prefix
+                                         (H2o_list.enum ~sep:"\n" !children
+                                             (fun c ->
+                                                 H2o_syntax.incr_depth ();
+                                                 let default = aux parent in
+                                                 let node = parent#on_child ~default c in
+                                                 let node =
+                                                   if is_comment c
+                                                   then node
+                                                   else node ^ ";"
+                                                 in
+                                                 H2o_syntax.decr_depth ();
+                                                 H2o_list.next children;
+                                                 node))
+                                 | `Unit -> sprintf "%s()" prefix
+                                 in
+                                 if with_depth then
+                                     H2o_syntax.decr_depth ();
+                                 node
+                             in
+                             let make_arg_with_expect arg = match arg with
+                                | `Option (m, arg) ->
+                                        if H2o_list.empty !children
+                                        then failwith (sprintf "tag:%s: argument expected" name)
+                                        else begin
+                                            let c, cl =
+                                                H2o_list.Opt.find_and_remove !children
+                                                    (function
+                                                        | `Node (n, _, _) ->
+                                                                if n = m
+                                                                then true
+                                                                else false
+                                                        | _ -> false)
+                                            in
+                                            match c with
+                                            | None -> ""
+                                            | Some c -> begin
+                                                children := cl;
+                                                make_arg ~children:(ref [c]) arg
+                                            end
+                                        end
+                                | `Expect (m, arg) ->
+                                        if H2o_list.empty !children
+                                        then failwith (sprintf "tag:%s: argument expected" name)
+                                        else begin
+                                            let c, cl =
+                                                try
+                                                    H2o_list.find_and_remove !children
+                                                        (function
+                                                            | `Node (n, _, _) ->
+                                                                    if n = m
+                                                                    then true
+                                                                    else false
+                                                            | _ -> false)
+                                                with Not_found ->
+                                                    failwith (sprintf "tag:%s: tag:%s expected" name m)
+                                            in
+                                            children := cl;
+                                            make_arg ~children:(ref [c]) arg
+                                        end
+                                | other -> make_arg ~children other
+                             in
+                             H2o_list.enum ~sep:"\n" args make_arg_with_expect
                          in
                          if not (H2o_list.empty !children)
                          then failwith (sprintf "tag:%s: unexpected child or children" name)
