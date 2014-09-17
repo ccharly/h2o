@@ -157,36 +157,43 @@ end
 
 let () =
     (* Register all *)
+
     (* html *)
     ignore (object
         inherit node_string "html"
         method kind = `Args [ `Arg; `Arg; ]
     end);
+
     (* head *)
     ignore (object
         inherit node_string "head"
         method kind = `Args [ `Arg; `List; ]
     end);
+
     (* title *)
     ignore (object
         inherit node_string "title"
         method kind = `Args [ `Arg ]
     end);
+
     (* hr *)
     ignore (object
         inherit node_string "hr"
         method kind = `Unary
     end);
+
     (* br *)
     ignore (object
         inherit node_string "br"
         method kind = `Unary
     end);
+
     (* a *)
     ignore (object
         inherit node_string "a"
         method name _ = "Raw.a"
     end);
+
     (* link *)
     ignore (object
         inherit node_string "link"
@@ -198,11 +205,13 @@ let () =
         | _ -> `a (n, v)
 
     end);
+
     (* meta *)
     ignore (object
         inherit node_string "meta"
         method kind = `Unary
     end);
+
     (* script *)
     ignore (object
         inherit node_string "script"
@@ -211,6 +220,7 @@ let () =
         method on_begin = "pcdata \""
         method on_end = "\""
     end);
+
     (* img *)
     ignore (object
         inherit node_string "img"
@@ -222,6 +232,7 @@ let () =
 
         method kind = `Unary
     end);
+
     (* button *)
     ignore (object
         inherit node_string "button"
