@@ -70,7 +70,6 @@ end
 class attr_default = object
     inherit attr
 
-    method ignore = false
     method register = false
 end
 
