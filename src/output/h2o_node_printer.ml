@@ -187,6 +187,19 @@ let () =
         method kind = `Args [ `Arg ]
     end);
 
+    (* table *)
+    ignore (object
+        inherit node_string "table"
+
+        method name _ = "tablex"
+
+        method kind = `Args [
+            `Expect ("thead", `Label "thead");
+            `Option ("tfoot", `Label "tfoot");
+            `List
+        ]
+    end);
+
     (* hr *)
     ignore (object
         inherit node_string "hr"
