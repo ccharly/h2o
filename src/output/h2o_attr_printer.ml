@@ -469,7 +469,7 @@ let () =
             | "onclick" -> "(Dom_html.mouseEvent Js.t -> unit)"
             | _ -> failwith (sprintf "don't know what to with onevent: %s" n)
             in
-            sprintf "{%s{ (fun _ _ -> ignore (Js.Unsafe.eval_string %S)) }}" ftype v
+            sprintf "{%s{ (fun _ -> ignore (Js.Unsafe.eval_string %S)) }}" ftype v
     end);
 
     (* data-.* *)
