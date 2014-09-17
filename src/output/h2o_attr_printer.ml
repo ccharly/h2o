@@ -389,6 +389,20 @@ let () =
             sprintf "[%s]" v
     end);
 
+    (* width *)
+    ignore (object
+        inherit attr_string "width"
+
+        method value _ v = v
+    end);
+
+    (* height *)
+    ignore (object
+        inherit attr_string "height"
+
+        method value _ v = v
+    end);
+
     (* checked *)
     ignore (object
         inherit attr_string "checked"
