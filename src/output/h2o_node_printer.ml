@@ -161,6 +161,32 @@ let () =
         inherit node_string "title"
         method kind = `Args [ `Arg ]
     end);
+    (* hr *)
+    ignore (object
+        inherit node_string "hr"
+        method kind = `Unary
+    end);
+    (* br *)
+    ignore (object
+        inherit node_string "br"
+        method kind = `Unary
+    end);
+    (* a *)
+    ignore (object
+        inherit node_string "a"
+        method name _ = "Raw.a"
+    end);
+    (* link *)
+    ignore (object
+        inherit node_string "link"
+        method kind = `Unary
+
+        method on_attr (n, v) = match n with
+        | "rel" -> `label (n, v)
+        | "href" -> `label (n, v)
+        | _ -> `a (n, v)
+
+    end);
     (* meta *)
     ignore (object
         inherit node_string "meta"
@@ -184,6 +210,14 @@ let () =
         | _ -> `a (n, v)
 
         method kind = `Unary
+    end);
+    (* button *)
+    ignore (object
+        inherit node_string "button"
+
+        method on_attr (n, v) = match n with
+        | "type" -> `label ("button_type", v)
+        | _ -> `a (n, v)
     end);
     (* End of register *)
     ()
