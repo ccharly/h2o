@@ -418,6 +418,37 @@ let () =
         method value _ = sprintf "(%s)"
     end);
 
+    (* input_type *)
+    ignore (object
+        inherit attr_string "input_type"
+
+        method value _ = function
+            | "button" -> "`Button"
+            | "checkbox" -> "`Checkbox"
+            | "color" -> "`Color"
+            | "date" -> "`Date"
+            | "datetime" -> "`Datetime"
+            | "datetime_local" -> "`Datetime_local"
+            | "email" -> "`Email"
+            | "file" -> "`File"
+            | "hidden" -> "`Hidden"
+            | "image" -> "`Image"
+            | "month" -> "`Month"
+            | "number" -> "`Number"
+            | "password" -> "`Password"
+            | "radio" -> "`Radio"
+            | "range" -> "`Range"
+            | "reset" -> "`Reset"
+            | "search" -> "`Search"
+            | "submit" -> "`Submit"
+            | "tel" -> "`Tel"
+            | "text" -> "`Text"
+            | "time" -> "`Time"
+            | "url" -> "`Url"
+            | "week" -> "`Week"
+            | inp_type -> failwith (sprintf "don't know what to with input type: %S" inp_type)
+    end);
+
     (* button_type *)
     ignore (object
         inherit attr_string "button_type"

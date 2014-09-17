@@ -270,6 +270,17 @@ let () =
         ]
 
     end);
+
+    (* input *)
+    ignore (object
+        inherit node_string "input"
+
+        method on_attr (n, v) = match n with
+        | "type" -> `label ("input_type", v)
+        | _ -> `a (n, v)
+
+        method kind = `Unary
+    end);
     (* End of register *)
     ()
 
