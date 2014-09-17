@@ -1,5 +1,10 @@
 open Printf
 
+module S = Set.Make(struct
+    type t = H2o_attr_printer.t
+    let compare = compare
+end)
+
 let registered = ref []
 
 let register obj =
@@ -54,6 +59,8 @@ class type node_t = object
 
     (* Called on each child *)
     method on_child: default:(H2o_ast.t -> string) -> H2o_ast.t -> string
+
+    method defaults: (string * string) list
 end
 
 class node : node_t = object(this)
@@ -71,19 +78,21 @@ class node : node_t = object(this)
         `a attr
 
     method on_attrs attrs =
-        let al = ref [] in
-        let ll = ref [] in
-        H2o_list.iter attrs
+        let al = ref S.empty in
+        let ll = ref S.empty in
+        H2o_list.iter (this#defaults @ attrs)
             (fun a ->
                 let a = this#on_attr a in
                 if H2o_attr_printer.is_label a
-                then H2o_list.add ll a
-                else H2o_list.add al a);
+                then ll := S.add a !ll
+                else al := S.add a !al);
+        let al = S.elements !al in
+        let ll = S.elements !ll in
         let a_label =
-            if H2o_list.empty !al then ""
+            if H2o_list.empty al then ""
             else
               let a_cnt =
-                H2o_list.enum !al
+                H2o_list.enum al
                 ~predicate:H2o_attr_printer.is_not_ignored
                 ~fallback_sep:" "
                 ~sep:"; "
@@ -93,7 +102,7 @@ class node : node_t = object(this)
         in
         sprintf "%s %s"
             a_label
-            (H2o_list.enum ~sep:" "  !ll H2o_attr_printer.build)
+            (H2o_list.enum ~sep:" "  ll H2o_attr_printer.build)
 
     method on_data d =
         sprintf "pcdata %S" d
@@ -112,6 +121,8 @@ class node : node_t = object(this)
 
     method on_child ~default node =
         default node
+
+    method defaults : (string * string) list = []
 
     initializer
         if this#register then
