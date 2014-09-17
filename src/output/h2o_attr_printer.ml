@@ -154,6 +154,7 @@ let () =
       "id";
       "title";
       (*"xml_lang";*)
+      (*
       "onabort";
       "onafterprint";
       "onbeforeprint";
@@ -223,6 +224,7 @@ let () =
       "onloadedmetadata";
       "onloadstart";
       "onmessage";
+      *)
       "version";
       "xmlns";
       "manifest";
@@ -232,10 +234,10 @@ let () =
       "charset";
       "accept_charset";
       "accept";
-      "href";
+      (*"href";*)
       "hreflang";
-      "rel";
-      "tabindex";
+      (*"rel";*)
+      (*"tabindex";*)
       "mime_type";
       "datetime";
       "action";
@@ -259,7 +261,7 @@ let () =
       "float_value";
       "disabled";
       "readonly";
-      "button_type";
+      (*"button_type";*)
       "command_type";
       "menu_type";
       "label";
@@ -301,6 +303,9 @@ let () =
     ]
     (* End of register *)
 
+let to_uri =
+    sprintf "(Eliom_content.Html5.F.uri_of_string (fun () -> %S))"
+
 let () =
     (* Register all *)
     (* http-equiv *)
@@ -327,6 +332,53 @@ let () =
             sprintf "`%s" (String.capitalize v)
     end);
 
+    (* src *)
+    ignore (object
+        inherit attr_string "src"
+
+        method value _ v =
+            to_uri v
+    end);
+
+    (* href *)
+    ignore (object
+        inherit attr_string "href"
+
+        method value _ v =
+            to_uri v
+    end);
+
+    (* rel *)
+    ignore (object
+        inherit attr_string "rel"
+
+        method value _ v =
+            sprintf "[%s]" (match v with
+            | "alternate" -> "`Alternate"
+            | "archives" -> "`Archives"
+            | "author" -> "`Author"
+            | "bookmark" -> "`Bookmark"
+            | "external" -> "`External"
+            | "first" -> "`First"
+            | "help" -> "`Help"
+            | "icon" -> "`Icon"
+            | "index" -> "`Index"
+            | "last" -> "`Last"
+            | "license" -> "`License"
+            | "next" -> "`Next"
+            | "nofollow" -> "`Nofollow"
+            | "noreferrer" -> "`Noreferrer"
+            | "pingback" -> "`Pingback"
+            | "prefetch" -> "`Prefetch"
+            | "prev" -> "`Prev"
+            | "search" -> "`Search"
+            | "sidebar" -> "`Sidebar"
+            | "stylesheet" -> "`Stylesheet"
+            | "tag" -> "`Tag"
+            | "up" -> "`Up"
+            | other -> sprintf "`Other %S" other)
+    end);
+
     (* class *)
     ignore (object
         inherit attr_string "class"
@@ -335,6 +387,36 @@ let () =
             let v = Str.split (Str.regexp " ") v in
             let v = H2o_list.enum ~sep:"; " v (sprintf "%S") in
             sprintf "[%s]" v
+    end);
+
+    (* tabindex *)
+    ignore (object
+        inherit attr_string "tabindex"
+
+        method value _ = sprintf "(%s)"
+    end);
+
+    (* button_type *)
+    ignore (object
+        inherit attr_string "button_type"
+
+        method value _ = function
+            | "button" -> "`Button"
+            | "submit" -> "`Submit"
+            | "reset" -> "`Reset"
+            | btn_type -> failwith (sprintf "don't know what to with button type: %S\n" btn_type)
+    end);
+
+    (* on(event) *)
+    ignore (object
+        inherit attr_regexp "on[a-zA-Z0-9_]+"
+
+        method value n v =
+            let ftype = match n with
+            | "onclick" -> "(Dom_html.mouseEvent Js.t -> unit)"
+            | _ -> failwith (sprintf "don't know what to with onevent: %s\n" n)
+            in
+            sprintf "{%s{ (fun _ _ -> ignore (Js.Unsafe.eval_string %S)) }}" ftype v
     end);
 
     (* data-.* *)
