@@ -404,7 +404,7 @@ let () =
             | "button" -> "`Button"
             | "submit" -> "`Submit"
             | "reset" -> "`Reset"
-            | btn_type -> failwith (sprintf "don't know what to with button type: %S\n" btn_type)
+            | btn_type -> failwith (sprintf "don't know what to with button type: %S" btn_type)
     end);
 
     (* on(event) *)
@@ -414,7 +414,7 @@ let () =
         method value n v =
             let ftype = match n with
             | "onclick" -> "(Dom_html.mouseEvent Js.t -> unit)"
-            | _ -> failwith (sprintf "don't know what to with onevent: %s\n" n)
+            | _ -> failwith (sprintf "don't know what to with onevent: %s" n)
             in
             sprintf "{%s{ (fun _ _ -> ignore (Js.Unsafe.eval_string %S)) }}" ftype v
     end);
