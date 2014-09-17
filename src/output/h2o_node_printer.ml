@@ -229,6 +229,11 @@ let () =
         method on_attr (n, v) = match n with
         | "type" -> `label ("button_type", v)
         | _ -> `a (n, v)
+
+        method defaults = [
+            "type", "button";
+        ]
+
     end);
     (* End of register *)
     ()
